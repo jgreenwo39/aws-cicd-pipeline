@@ -1,16 +1,834 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CI/CD Pipeline Demo</title>
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Joe Greenwood — Cloud Engineer</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --navy: #0B1E3D;
+      --navy-mid: #122850;
+      --blue: #1A56DB;
+      --blue-light: #3B82F6;
+      --accent: #38BDF8;
+      --gold: #F59E0B;
+      --white: #F8FAFC;
+      --gray-light: #CBD5E1;
+      --gray: #94A3B8;
+      --text: #E2E8F0;
+      --card: rgba(255,255,255,0.04);
+      --card-border: rgba(255,255,255,0.08);
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--navy);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 300;
+      line-height: 1.7;
+      overflow-x: hidden;
+    }
+
+    /* Background grid */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(26,86,219,0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(26,86,219,0.04) 1px, transparent 1px);
+      background-size: 60px 60px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* Glow orbs */
+    body::after {
+      content: '';
+      position: fixed;
+      top: -20%;
+      right: -10%;
+      width: 700px;
+      height: 700px;
+      background: radial-gradient(circle, rgba(26,86,219,0.12) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .glow-bottom {
+      position: fixed;
+      bottom: -20%;
+      left: -10%;
+      width: 600px;
+      height: 600px;
+      background: radial-gradient(circle, rgba(56,189,248,0.07) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* NAV */
+    nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+      padding: 20px 60px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(11,30,61,0.85);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--card-border);
+    }
+
+    .nav-logo {
+      font-family: 'DM Serif Display', serif;
+      font-size: 1.2rem;
+      color: var(--white);
+      letter-spacing: 0.02em;
+    }
+
+    .nav-logo span { color: var(--accent); }
+
+    .nav-links {
+      display: flex;
+      gap: 36px;
+      list-style: none;
+    }
+
+    .nav-links a {
+      color: var(--gray);
+      text-decoration: none;
+      font-size: 0.85rem;
+      font-weight: 500;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      transition: color 0.2s;
+    }
+
+    .nav-links a:hover { color: var(--accent); }
+
+    /* SECTIONS */
+    section {
+      position: relative;
+      z-index: 1;
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 100px 60px;
+    }
+
+    /* HERO */
+    #hero {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding-top: 140px;
+    }
+
+    .hero-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.8rem;
+      color: var(--accent);
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      margin-bottom: 24px;
+      opacity: 0;
+      animation: fadeUp 0.6s ease forwards 0.2s;
+    }
+
+    .hero-name {
+      font-family: 'DM Serif Display', serif;
+      font-size: clamp(3.5rem, 8vw, 6.5rem);
+      line-height: 1.0;
+      color: var(--white);
+      margin-bottom: 16px;
+      opacity: 0;
+      animation: fadeUp 0.6s ease forwards 0.4s;
+    }
+
+    .hero-name em {
+      font-style: italic;
+      color: var(--accent);
+    }
+
+    .hero-title {
+      font-size: 1.1rem;
+      color: var(--gray);
+      font-weight: 400;
+      margin-bottom: 32px;
+      opacity: 0;
+      animation: fadeUp 0.6s ease forwards 0.6s;
+    }
+
+    .hero-bio {
+      max-width: 620px;
+      font-size: 1.05rem;
+      color: var(--text);
+      line-height: 1.8;
+      margin-bottom: 48px;
+      opacity: 0;
+      animation: fadeUp 0.6s ease forwards 0.8s;
+    }
+
+    .hero-cta {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      opacity: 0;
+      animation: fadeUp 0.6s ease forwards 1.0s;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 13px 28px;
+      border-radius: 6px;
+      font-size: 0.9rem;
+      font-weight: 500;
+      text-decoration: none;
+      transition: all 0.2s;
+      cursor: pointer;
+      border: none;
+    }
+
+    .btn-primary {
+      background: var(--blue);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: var(--blue-light);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(26,86,219,0.35);
+    }
+
+    .btn-outline {
+      background: transparent;
+      color: var(--text);
+      border: 1px solid var(--card-border);
+    }
+
+    .btn-outline:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+      transform: translateY(-2px);
+    }
+
+    .hero-stats {
+      display: flex;
+      gap: 48px;
+      margin-top: 72px;
+      padding-top: 48px;
+      border-top: 1px solid var(--card-border);
+      opacity: 0;
+      animation: fadeUp 0.6s ease forwards 1.2s;
+    }
+
+    .stat-num {
+      font-family: 'DM Serif Display', serif;
+      font-size: 2.2rem;
+      color: var(--white);
+      line-height: 1;
+    }
+
+    .stat-num span { color: var(--accent); }
+
+    .stat-label {
+      font-size: 0.8rem;
+      color: var(--gray);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-top: 4px;
+    }
+
+    /* SECTION HEADERS */
+    .section-tag {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+      color: var(--accent);
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+
+    .section-title {
+      font-family: 'DM Serif Display', serif;
+      font-size: clamp(2rem, 4vw, 3rem);
+      color: var(--white);
+      margin-bottom: 16px;
+      line-height: 1.15;
+    }
+
+    .section-sub {
+      color: var(--gray);
+      font-size: 1rem;
+      max-width: 540px;
+      margin-bottom: 60px;
+    }
+
+    /* SKILLS */
+    .skills-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 20px;
+    }
+
+    .skill-card {
+      background: var(--card);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 28px;
+      transition: all 0.25s;
+    }
+
+    .skill-card:hover {
+      border-color: rgba(56,189,248,0.25);
+      background: rgba(255,255,255,0.06);
+      transform: translateY(-3px);
+    }
+
+    .skill-icon {
+      font-size: 1.8rem;
+      margin-bottom: 14px;
+    }
+
+    .skill-name {
+      font-weight: 600;
+      color: var(--white);
+      margin-bottom: 8px;
+      font-size: 0.95rem;
+    }
+
+    .skill-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 12px;
+    }
+
+    .tag {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.7rem;
+      padding: 3px 10px;
+      border-radius: 4px;
+      background: rgba(26,86,219,0.15);
+      color: var(--accent);
+      border: 1px solid rgba(56,189,248,0.15);
+    }
+
+    /* PROJECTS */
+    .projects-grid {
+      display: grid;
+      gap: 24px;
+    }
+
+    .project-card {
+      background: var(--card);
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      padding: 36px;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 24px;
+      align-items: start;
+      transition: all 0.25s;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .project-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, var(--blue), var(--accent));
+      opacity: 0;
+      transition: opacity 0.25s;
+    }
+
+    .project-card:hover {
+      border-color: rgba(56,189,248,0.2);
+      background: rgba(255,255,255,0.05);
+      transform: translateY(-3px);
+    }
+
+    .project-card:hover::before { opacity: 1; }
+
+    .project-num {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.7rem;
+      color: var(--blue-light);
+      letter-spacing: 0.1em;
+      margin-bottom: 10px;
+    }
+
+    .project-title {
+      font-family: 'DM Serif Display', serif;
+      font-size: 1.4rem;
+      color: var(--white);
+      margin-bottom: 12px;
+      line-height: 1.2;
+    }
+
+    .project-desc {
+      font-size: 0.95rem;
+      color: var(--gray);
+      line-height: 1.75;
+      margin-bottom: 20px;
+    }
+
+    .project-links {
+      display: flex;
+      gap: 12px;
+    }
+
+    .project-link {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+      color: var(--accent);
+      text-decoration: none;
+      letter-spacing: 0.05em;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      transition: opacity 0.2s;
+    }
+
+    .project-link:hover { opacity: 0.7; }
+
+    .project-stack {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    /* CERTS */
+    .certs-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 16px;
+    }
+
+    .cert-card {
+      background: var(--card);
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      padding: 24px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      transition: all 0.2s;
+    }
+
+    .cert-card:hover {
+      border-color: rgba(245,158,11,0.3);
+      transform: translateY(-2px);
+    }
+
+    .cert-icon {
+      font-size: 1.6rem;
+      flex-shrink: 0;
+    }
+
+    .cert-name {
+      font-size: 0.9rem;
+      font-weight: 500;
+      color: var(--white);
+      line-height: 1.3;
+    }
+
+    .cert-org {
+      font-size: 0.78rem;
+      color: var(--gray);
+      margin-top: 3px;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* CONTACT */
+    #contact {
+      text-align: center;
+    }
+
+    .contact-card {
+      background: var(--card);
+      border: 1px solid var(--card-border);
+      border-radius: 20px;
+      padding: 60px;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    .contact-links {
+      display: flex;
+      justify-content: center;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin-top: 32px;
+    }
+
+    /* FOOTER */
+    footer {
+      position: relative;
+      z-index: 1;
+      text-align: center;
+      padding: 40px 60px;
+      border-top: 1px solid var(--card-border);
+      color: var(--gray);
+      font-size: 0.8rem;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    footer span { color: var(--accent); }
+
+    /* ANIMATIONS */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(24px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .fade-in {
+      opacity: 0;
+      transform: translateY(20px);
+      transition: opacity 0.6s ease, transform 0.6s ease;
+    }
+
+    .fade-in.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* DIVIDER */
+    .divider {
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--card-border), transparent);
+      margin: 0 60px;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* RESPONSIVE */
+    @media (max-width: 768px) {
+      nav { padding: 16px 24px; }
+      .nav-links { display: none; }
+      section { padding: 80px 24px; }
+      .project-card { grid-template-columns: 1fr; }
+      .hero-stats { gap: 28px; flex-wrap: wrap; }
+      .contact-card { padding: 40px 24px; }
+      footer { padding: 32px 24px; }
+    }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <h1>✅ Automatically Deployed via GitHub Actions</h1>
-        <p>This site is automatically deployed to AWS S3 + CloudFront</p>
-        <p>Every push to <code>main</code> triggers the pipeline.</p>
+
+<div class="glow-bottom"></div>
+
+<nav>
+  <div class="nav-logo">Joe <span>Greenwood</span></div>
+  <ul class="nav-links">
+    <li><a href="#skills">Skills</a></li>
+    <li><a href="#projects">Projects</a></li>
+    <li><a href="#certifications">Certs</a></li>
+    <li><a href="#contact">Contact</a></li>
+  </ul>
+</nav>
+
+<!-- HERO -->
+<section id="hero">
+  <p class="hero-label">// Cloud Support &amp; Operations Engineer</p>
+  <h1 class="hero-name">Joe<br><em>Greenwood</em></h1>
+  <p class="hero-title">AWS · CI/CD · Infrastructure as Code · Linux</p>
+  <p class="hero-bio">
+    Cloud engineer with hands-on AWS experience building and deploying real infrastructure — 
+    EC2, S3, RDS, VPC, CloudFront, and automated CI/CD pipelines. AWS Cloud Practitioner certified, 
+    currently pursuing Solutions Architect Associate. I don't just study cloud — I build with it.
+  </p>
+  <div class="hero-cta">
+    <a href="#projects" class="btn btn-primary">View Projects →</a>
+    <a href="https://github.com/jgreenwo39" target="_blank" class="btn btn-outline">GitHub Profile</a>
+    <a href="https://linkedin.com/in/joegreenwood7" target="_blank" class="btn btn-outline">LinkedIn</a>
+  </div>
+  <div class="hero-stats">
+    <div>
+      <div class="stat-num">4<span>+</span></div>
+      <div class="stat-label">Live AWS Projects</div>
     </div>
+    <div>
+      <div class="stat-num">3<span>+</span></div>
+      <div class="stat-label">AWS Certifications</div>
+    </div>
+    <div>
+      <div class="stat-num">15<span>s</span></div>
+      <div class="stat-label">CI/CD Deploy Time</div>
+    </div>
+    <div>
+      <div class="stat-num">∞</div>
+      <div class="stat-label">Drive to Build</div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- SKILLS -->
+<section id="skills">
+  <div class="fade-in">
+    <p class="section-tag">// 01 — Skills</p>
+    <h2 class="section-title">What I Work With</h2>
+    <p class="section-sub">Core technical skills developed through real project work, not just coursework.</p>
+  </div>
+  <div class="skills-grid">
+    <div class="skill-card fade-in">
+      <div class="skill-icon">☁️</div>
+      <div class="skill-name">Cloud Platforms</div>
+      <div class="skill-tags">
+        <span class="tag">EC2</span><span class="tag">S3</span><span class="tag">RDS</span>
+        <span class="tag">CloudFront</span><span class="tag">VPC</span><span class="tag">IAM</span>
+        <span class="tag">CloudWatch</span><span class="tag">Route 53</span>
+      </div>
+    </div>
+    <div class="skill-card fade-in">
+      <div class="skill-icon">⚙️</div>
+      <div class="skill-name">CI/CD & Automation</div>
+      <div class="skill-tags">
+        <span class="tag">GitHub Actions</span><span class="tag">AWS CLI</span><span class="tag">Bash</span>
+      </div>
+    </div>
+    <div class="skill-card fade-in">
+      <div class="skill-icon">🏗️</div>
+      <div class="skill-name">Infrastructure as Code</div>
+      <div class="skill-tags">
+        <span class="tag">Terraform</span><span class="tag">HCL</span><span class="tag">VPC Modules</span>
+      </div>
+    </div>
+    <div class="skill-card fade-in">
+      <div class="skill-icon">🔒</div>
+      <div class="skill-name">Cloud Security</div>
+      <div class="skill-tags">
+        <span class="tag">IAM</span><span class="tag">Least Privilege</span><span class="tag">MFA</span>
+        <span class="tag">Secrets Management</span><span class="tag">SSH</span>
+      </div>
+    </div>
+    <div class="skill-card fade-in">
+      <div class="skill-icon">🖥️</div>
+      <div class="skill-name">Web Servers & Databases</div>
+      <div class="skill-tags">
+        <span class="tag">Nginx</span><span class="tag">PHP</span><span class="tag">MySQL</span>
+        <span class="tag">Amazon RDS</span>
+      </div>
+    </div>
+    <div class="skill-card fade-in">
+      <div class="skill-icon">🛠️</div>
+      <div class="skill-name">Developer Tools</div>
+      <div class="skill-tags">
+        <span class="tag">Git</span><span class="tag">GitHub</span><span class="tag">Linux</span>
+        <span class="tag">VS Code</span><span class="tag">Bash</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- PROJECTS -->
+<section id="projects">
+  <div class="fade-in">
+    <p class="section-tag">// 02 — Projects</p>
+    <h2 class="section-title">Built & Deployed</h2>
+    <p class="section-sub">Real AWS infrastructure — end to end. Every project is live.</p>
+  </div>
+  <div class="projects-grid">
+
+    <div class="project-card fade-in">
+      <div>
+        <p class="project-num">PROJECT 01</p>
+        <h3 class="project-title">CI/CD Pipeline: GitHub Actions + AWS</h3>
+        <p class="project-desc">
+          Automated deployment pipeline that syncs a static site to S3 and invalidates CloudFront 
+          on every push to main — completing in under 15 seconds. Built a least-privilege IAM user 
+          scoped to only the required permissions. AWS credentials injected via GitHub Secrets — 
+          never stored in code.
+        </p>
+        <div class="project-links">
+          <a href="https://github.com/jgreenwo39/aws-cicd-pipeline" target="_blank" class="project-link">⬡ GitHub</a>
+          <a href="https://d3uwqyk78lbrx7.cloudfront.net" target="_blank" class="project-link">↗ Live Site</a>
+        </div>
+      </div>
+      <div class="project-stack">
+        <span class="tag">GitHub Actions</span>
+        <span class="tag">S3</span>
+        <span class="tag">CloudFront</span>
+        <span class="tag">IAM</span>
+        <span class="tag">YAML</span>
+      </div>
+    </div>
+
+    <div class="project-card fade-in">
+      <div>
+        <p class="project-num">PROJECT 02</p>
+        <h3 class="project-title">Static Website on AWS S3 + CloudFront</h3>
+        <p class="project-desc">
+          Deployed a personal portfolio site to S3 with CloudFront as a CDN for global HTTPS 
+          delivery. Configured bucket policies, IAM permissions, and origin access controls. 
+          Automated deployment via AWS CLI and Git.
+        </p>
+        <div class="project-links">
+          <a href="https://github.com/jgreenwo39" target="_blank" class="project-link">⬡ GitHub</a>
+          <a href="https://d3uwqyk78lbrx7.cloudfront.net" target="_blank" class="project-link">↗ Live Site</a>
+        </div>
+      </div>
+      <div class="project-stack">
+        <span class="tag">S3</span>
+        <span class="tag">CloudFront</span>
+        <span class="tag">IAM</span>
+        <span class="tag">AWS CLI</span>
+      </div>
+    </div>
+
+    <div class="project-card fade-in">
+      <div>
+        <p class="project-num">PROJECT 03</p>
+        <h3 class="project-title">EC2 Web App + RDS Database</h3>
+        <p class="project-desc">
+          Deployed a 3-tier web application on AWS with Nginx and PHP on an Ubuntu EC2 instance 
+          connected to a managed MySQL database on RDS. Configured VPC networking, security groups, 
+          and SSH access. Application displays live data queried directly from RDS.
+        </p>
+        <div class="project-links">
+          <a href="https://github.com/jgreenwo39" target="_blank" class="project-link">⬡ GitHub</a>
+        </div>
+      </div>
+      <div class="project-stack">
+        <span class="tag">EC2</span>
+        <span class="tag">RDS</span>
+        <span class="tag">Nginx</span>
+        <span class="tag">PHP</span>
+        <span class="tag">MySQL</span>
+        <span class="tag">VPC</span>
+      </div>
+    </div>
+
+    <div class="project-card fade-in">
+      <div>
+        <p class="project-num">PROJECT 04</p>
+        <h3 class="project-title">Terraform VPC + EC2 Module</h3>
+        <p class="project-desc">
+          Built a reusable Terraform module that provisions a complete AWS network from code — 
+          VPC, public subnet, internet gateway, route table, security group, and EC2 instance. 
+          Demonstrates Infrastructure as Code principles using HCL.
+        </p>
+        <div class="project-links">
+          <a href="https://github.com/jgreenwo39/terraform-vpc-ec2" target="_blank" class="project-link">⬡ GitHub</a>
+        </div>
+      </div>
+      <div class="project-stack">
+        <span class="tag">Terraform</span>
+        <span class="tag">HCL</span>
+        <span class="tag">VPC</span>
+        <span class="tag">EC2</span>
+        <span class="tag">IaC</span>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- CERTIFICATIONS -->
+<section id="certifications">
+  <div class="fade-in">
+    <p class="section-tag">// 03 — Certifications</p>
+    <h2 class="section-title">Credentials</h2>
+    <p class="section-sub">Industry certifications and professional training.</p>
+  </div>
+  <div class="certs-grid fade-in">
+    <div class="cert-card">
+      <div class="cert-icon">🏆</div>
+      <div>
+        <div class="cert-name">AWS Solutions Architect Associate</div>
+        <div class="cert-org">KodeKloud · In Progress 2026</div>
+      </div>
+    </div>
+    <div class="cert-card">
+      <div class="cert-icon">☁️</div>
+      <div>
+        <div class="cert-name">AWS Cloud Practitioner</div>
+        <div class="cert-org">Per Scholas · 2025</div>
+      </div>
+    </div>
+    <div class="cert-card">
+      <div class="cert-icon">🐧</div>
+      <div>
+        <div class="cert-name">Linux Crash Course</div>
+        <div class="cert-org">KodeKloud · 2026</div>
+      </div>
+    </div>
+    <div class="cert-card">
+      <div class="cert-icon">🔐</div>
+      <div>
+        <div class="cert-name">Google Cybersecurity Professional</div>
+        <div class="cert-org">Coursera · 2023</div>
+      </div>
+    </div>
+    <div class="cert-card">
+      <div class="cert-icon">💻</div>
+      <div>
+        <div class="cert-name">Google IT Support Professional</div>
+        <div class="cert-org">Coursera · 2020</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- CONTACT -->
+<section id="contact">
+  <div class="contact-card fade-in">
+    <p class="section-tag" style="text-align:center">// 04 — Contact</p>
+    <h2 class="section-title" style="text-align:center">Let's Connect</h2>
+    <p style="color:var(--gray); font-size:0.95rem; margin-top:8px;">
+      Open to Cloud Support Engineer, Junior Cloud Engineer, and Cloud Operations Engineer roles.
+    </p>
+    <div class="contact-links">
+      <a href="mailto:jgreenwo39@yahoo.com" class="btn btn-primary">✉ Email Me</a>
+      <a href="https://linkedin.com/in/joegreenwood7" target="_blank" class="btn btn-outline">LinkedIn</a>
+      <a href="https://github.com/jgreenwo39" target="_blank" class="btn btn-outline">GitHub</a>
+    </div>
+    <p style="color:var(--gray); font-size:0.8rem; margin-top:28px; font-family:'JetBrains Mono',monospace;">
+      jgreenwo39@yahoo.com &nbsp;·&nbsp; Prosper, Texas
+    </p>
+  </div>
+</section>
+
+<footer>
+  <p>Built &amp; deployed automatically via <span>GitHub Actions → S3 → CloudFront</span></p>
+</footer>
+
+<script>
+  // Scroll fade-in
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry, i) => {
+      if (entry.isIntersecting) {
+        setTimeout(() => entry.target.classList.add('visible'), i * 80);
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.1 });
+
+  document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+</script>
+
 </body>
 </html>
